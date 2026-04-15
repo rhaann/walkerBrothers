@@ -1,26 +1,48 @@
+/* Global styles for the actual insight beverage inventory app.
+   Sets up base theme variables, overrides Tailwind defaults with brand colors,
+   and enforces the dark-first design system. */
+
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Brand color palette */
+  --color-brand-navy: #001A29;
+  --color-brand-blue: #0077D1;
+  --color-brand-blue-sky: #0090FF;
+  --color-brand-electric: #0013DC;
+  --color-brand-turquoise: #00C6AC;
+  --color-brand-orange: #FF3000;
+
+  /* Neutral palette */
+  --color-neutral-white: #FFFFFF;
+  --color-neutral-grey: #DCDCDC;
+  --color-neutral-grey-light: #EFEFEF;
+
+  /* Semantic surface tokens — used throughout components */
+  --color-surface-base: #001A29;
+  --color-surface-raised: #002236;
+  --color-surface-overlay: #002E47;
+
+  /* Typography */
+  --font-sans: var(--font-inter);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Dark-first base — Navy Black is the canonical background */
+:root {
+  background-color: #001A29;
+  color: #FFFFFF;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #001A29;
+  color: #FFFFFF;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure full-height layout for dashboard flex/grid structures */
+html,
+body {
+  height: 100%;
 }
