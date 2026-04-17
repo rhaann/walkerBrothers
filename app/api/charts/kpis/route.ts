@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
     const data = await fetchKpis(days);
     return NextResponse.json(data);
   } catch (error) {
+    console.error("[/api/charts/kpis] DB error:", error);
     const message = error instanceof Error ? error.message : "Query failed";
     return NextResponse.json({ error: message }, { status: 500 });
   }
