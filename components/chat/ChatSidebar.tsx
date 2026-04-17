@@ -10,6 +10,7 @@ import { useState } from "react";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
 import { type Message } from "./MessageBubble";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 /** Generates a unique enough ID for message keys. */
 function makeId() {
@@ -52,9 +53,17 @@ export default function ChatSidebar() {
         content: m.content,
       }));
 
+      const supabase = createSupabaseBrowserClient();
+      const { data: { session } } = await supabase.auth.getSession();
+
       const response = await fetch("/api/agent", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(session?.access_token
+            ? { Authorization: `Bearer ${session.access_token}` }
+            : {}),
+        },
         body: JSON.stringify({ messages: history }),
       });
 
