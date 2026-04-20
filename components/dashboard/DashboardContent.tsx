@@ -11,10 +11,14 @@ import KpiCard from "./KpiCard";
 import SalesByStoreChart from "./SalesByStoreChart";
 import SalesOverTimeChart from "./SalesOverTimeChart";
 import SalesByProductChart from "./SalesByProductChart";
+import SalesTYLYChart from "./SalesTYLYChart";
+import UnitsPerStoreChart from "./UnitsPerStoreChart";
 import DateRangeFilter, { type DateRangeDays } from "./DateRangeFilter";
 import type { SalesByStoreDataPoint } from "./SalesByStoreChart";
 import type { SalesOverTimeDataPoint } from "./SalesOverTimeChart";
 import type { SalesByProductDataPoint } from "./SalesByProductChart";
+import type { SalesTYLYDataPoint } from "./SalesTYLYChart";
+import type { UnitsPerStoreDataPoint } from "./UnitsPerStoreChart";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -25,6 +29,12 @@ interface KpiData {
   unitSalesLY: number;
   topProduct: string;
   storeCount: number;
+  perStore: number;
+  perStoreLY: number;
+  unitsPerStore: number;
+  unitsPerStoreLY: number;
+  avgPrice: number;
+  avgPriceLY: number;
 }
 
 interface DashboardData {
@@ -32,6 +42,8 @@ interface DashboardData {
   salesOverTime: SalesOverTimeDataPoint[];
   salesByStore: SalesByStoreDataPoint[];
   salesByProduct: SalesByProductDataPoint[];
+  salesWithLY: SalesTYLYDataPoint[];
+  unitsPerStore: UnitsPerStoreDataPoint[];
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -46,6 +58,19 @@ function formatCurrency(value: number): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+}
+
+/**
+ * Compact currency for large values that would overflow a card (e.g. 42871 → "$42.9k").
+ */
+function formatCompactCurrency(value: number): string {
+  if (Math.abs(value) >= 1_000_000) {
+    return `$${(value / 1_000_000).toFixed(1)}M`;
+  }
+  if (Math.abs(value) >= 10_000) {
+    return `$${(value / 1_000).toFixed(1)}k`;
+  }
+  return formatCurrency(value);
 }
 
 /**
@@ -84,23 +109,27 @@ function formatDateLabel(dateStr: string): string {
  * Fetches all dashboard data for the given day window in parallel.
  */
 async function fetchDashboardData(days: DateRangeDays): Promise<DashboardData> {
-  const [kpisRes, overTimeRes, byStoreRes, byProductRes] = await Promise.all([
+  const [kpisRes, overTimeRes, byStoreRes, byProductRes, salesLYRes, unitsStoreRes] = await Promise.all([
     fetch(`/api/charts/kpis?days=${days}`),
     fetch(`/api/charts/sales-over-time?days=${days}`),
     fetch(`/api/charts/sales-by-store?days=${days}`),
     fetch(`/api/charts/sales-by-product?days=${days}`),
+    fetch(`/api/charts/sales-with-ly?days=${days}`),
+    fetch(`/api/charts/units-per-store?days=${days}`),
   ]);
 
-  if (!kpisRes.ok || !overTimeRes.ok || !byStoreRes.ok || !byProductRes.ok) {
+  if (!kpisRes.ok || !overTimeRes.ok || !byStoreRes.ok || !byProductRes.ok || !salesLYRes.ok || !unitsStoreRes.ok) {
     throw new Error("One or more chart endpoints returned an error");
   }
 
-  const [kpis, salesOverTimeRaw, salesByStoreRaw, salesByProductRaw] =
+  const [kpis, salesOverTimeRaw, salesByStoreRaw, salesByProductRaw, salesWithLYRaw, unitsPerStoreRaw] =
     await Promise.all([
       kpisRes.json() as Promise<KpiData>,
       overTimeRes.json() as Promise<{ date: string; netSales: number }[]>,
       byStoreRes.json() as Promise<{ storeName: string; netSales: number }[]>,
       byProductRes.json() as Promise<{ itemDescription: string; netSales: number }[]>,
+      salesLYRes.json() as Promise<{ date: string; netSales: number; netSalesLY: number }[]>,
+      unitsStoreRes.json() as Promise<{ date: string; unitsPerStore: number; unitsPerStoreLY: number }[]>,
     ]);
 
   return {
@@ -113,6 +142,16 @@ async function fetchDashboardData(days: DateRangeDays): Promise<DashboardData> {
     salesByProduct: salesByProductRaw.map((r) => ({
       itemDescription: r.itemDescription,
       netSales: r.netSales,
+    })),
+    salesWithLY: salesWithLYRaw.map((r) => ({
+      date: formatDateLabel(r.date),
+      netSales: r.netSales,
+      netSalesLY: r.netSalesLY,
+    })),
+    unitsPerStore: unitsPerStoreRaw.map((r) => ({
+      date: formatDateLabel(r.date),
+      unitsPerStore: r.unitsPerStore,
+      unitsPerStoreLY: r.unitsPerStoreLY,
     })),
   };
 }
@@ -178,22 +217,52 @@ export default function DashboardContent() {
         </div>
       )}
 
-      {/* KPI strip — 2 cols when narrow, 4 cols when the panel is wide enough */}
+      {/* KPI strip — 2 cols narrow, 4 cols medium, 7 cols wide */}
       <div className="grid grid-cols-2 @2xl:grid-cols-4 gap-3">
         <KpiCard
-          label="Net Sales"
-          value={data ? formatCurrency(data.kpis.totalNetSales) : "—"}
+          label="$/Store"
+          value={data ? formatCompactCurrency(data.kpis.perStore) : "—"}
+          subLabel={periodLabel}
+          trend={data ? yoyTrend(data.kpis.perStore, data.kpis.perStoreLY)?.label : undefined}
+          trendDirection={data ? yoyTrend(data.kpis.perStore, data.kpis.perStoreLY)?.direction : undefined}
+          isLoading={isLoading}
+        />
+        <KpiCard
+          label="Sales"
+          value={data ? formatCompactCurrency(data.kpis.totalNetSales) : "—"}
           subLabel={periodLabel}
           trend={netSalesTrend?.label}
           trendDirection={netSalesTrend?.direction}
           isLoading={isLoading}
         />
         <KpiCard
-          label="Unit Sales"
+          label="Units/Store"
+          value={data ? data.kpis.unitsPerStore.toFixed(1) : "—"}
+          subLabel={periodLabel}
+          trend={data ? yoyTrend(data.kpis.unitsPerStore, data.kpis.unitsPerStoreLY)?.label : undefined}
+          trendDirection={data ? yoyTrend(data.kpis.unitsPerStore, data.kpis.unitsPerStoreLY)?.direction : undefined}
+          isLoading={isLoading}
+        />
+        <KpiCard
+          label="Units"
           value={data ? formatNumber(data.kpis.totalUnitSales) : "—"}
           subLabel={periodLabel}
           trend={unitSalesTrend?.label}
           trendDirection={unitSalesTrend?.direction}
+          isLoading={isLoading}
+        />
+        <KpiCard
+          label="Avg Price"
+          value={data ? formatCurrency(data.kpis.avgPrice) : "—"}
+          subLabel={periodLabel}
+          trend={data ? yoyTrend(data.kpis.avgPrice, data.kpis.avgPriceLY)?.label : undefined}
+          trendDirection={data ? yoyTrend(data.kpis.avgPrice, data.kpis.avgPriceLY)?.direction : undefined}
+          isLoading={isLoading}
+        />
+        <KpiCard
+          label="Stores"
+          value={data ? formatNumber(data.kpis.storeCount) : "—"}
+          subLabel={periodLabel}
           isLoading={isLoading}
         />
         <KpiCard
@@ -202,16 +271,20 @@ export default function DashboardContent() {
           subLabel="by net sales"
           isLoading={isLoading}
         />
-        <KpiCard
-          label="Active Stores"
-          value={data ? formatNumber(data.kpis.storeCount) : "—"}
-          subLabel={periodLabel}
+      </div>
+
+      {/* Sales TY vs LY and Units/Store side by side */}
+      <div className="grid grid-cols-1 @2xl:grid-cols-2 gap-3">
+        <SalesTYLYChart
+          data={data?.salesWithLY ?? []}
+          isLoading={isLoading}
+        />
+        <UnitsPerStoreChart
+          data={data?.unitsPerStore ?? []}
           isLoading={isLoading}
         />
       </div>
 
-      {/* All charts stacked full-width — each chart gets the full panel width
-          regardless of how wide the sidebar is, so nothing ever cramps */}
       <SalesOverTimeChart
         data={data?.salesOverTime ?? []}
         isLoading={isLoading}

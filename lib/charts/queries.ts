@@ -34,6 +34,13 @@ export interface KpiData {
   unitSalesLY: number;
   topProduct: string;
   storeCount: number;
+  // Derived metrics
+  perStore: number;
+  perStoreLY: number;
+  unitsPerStore: number;
+  unitsPerStoreLY: number;
+  avgPrice: number;
+  avgPriceLY: number;
 }
 
 /**
@@ -70,14 +77,92 @@ export async function fetchKpis(days: ChartDays): Promise<KpiData> {
   const totals = totalsRows[0] ?? {};
   const top = topProductRows[0] ?? {};
 
+  const totalNetSales = Number(totals.current_net_sales ?? 0);
+  const totalUnitSales = Number(totals.current_unit_sales ?? 0);
+  const netSalesLY = Number(totals.ly_net_sales ?? 0);
+  const unitSalesLY = Number(totals.ly_unit_sales ?? 0);
+  const storeCount = Number(totals.store_count ?? 0);
+
   return {
-    totalNetSales: Number(totals.current_net_sales ?? 0),
-    totalUnitSales: Number(totals.current_unit_sales ?? 0),
-    netSalesLY: Number(totals.ly_net_sales ?? 0),
-    unitSalesLY: Number(totals.ly_unit_sales ?? 0),
+    totalNetSales,
+    totalUnitSales,
+    netSalesLY,
+    unitSalesLY,
     topProduct: String(top["Item Description"] ?? "—"),
-    storeCount: Number(totals.store_count ?? 0),
+    storeCount,
+    perStore: storeCount > 0 ? totalNetSales / storeCount : 0,
+    perStoreLY: storeCount > 0 ? netSalesLY / storeCount : 0,
+    unitsPerStore: storeCount > 0 ? totalUnitSales / storeCount : 0,
+    unitsPerStoreLY: storeCount > 0 ? unitSalesLY / storeCount : 0,
+    avgPrice: totalUnitSales > 0 ? totalNetSales / totalUnitSales : 0,
+    avgPriceLY: unitSalesLY > 0 ? netSalesLY / unitSalesLY : 0,
   };
+}
+
+// ─── Sales TY vs LY over time ─────────────────────────────────────────────────
+
+export interface SalesWithLYRow {
+  date: string;
+  netSales: number;
+  netSalesLY: number;
+}
+
+/**
+ * Fetches daily net sales for both this year and last year over the rolling window.
+ * Used for the TY vs LY comparison line chart.
+ */
+export async function fetchSalesWithLY(days: ChartDays): Promise<SalesWithLYRow[]> {
+  const rows = await runReadonlyQuery(`
+    SELECT
+      "Day ID"                                    AS date,
+      SUM("Net Sales")                            AS net_sales,
+      SUM(CAST("Net Sales LY" AS FLOAT))          AS net_sales_ly
+    FROM "wholeFoods"
+    WHERE CAST("Day ID" AS DATE) >= ${MAX_DATE} - INTERVAL '${interval(days)}'
+    GROUP BY "Day ID"
+    ORDER BY "Day ID" ASC
+    LIMIT 1000
+  `);
+  return rows.map((r) => ({
+    date: String(r.date),
+    netSales: Number(r.net_sales ?? 0),
+    netSalesLY: Number(r.net_sales_ly ?? 0),
+  }));
+}
+
+// ─── Units per store TY vs LY over time ───────────────────────────────────────
+
+export interface UnitsPerStoreRow {
+  date: string;
+  unitsPerStore: number;
+  unitsPerStoreLY: number;
+}
+
+/**
+ * Fetches daily units/store for TY and LY over the rolling window.
+ * Units/Store = total unit sales divided by distinct store count for that day.
+ */
+export async function fetchUnitsPerStoreOverTime(days: ChartDays): Promise<UnitsPerStoreRow[]> {
+  const rows = await runReadonlyQuery(`
+    SELECT
+      "Day ID"                                        AS date,
+      SUM("Unit Sales")                               AS unit_sales,
+      SUM(CAST("Unit Sales LY" AS INTEGER))           AS unit_sales_ly,
+      COUNT(DISTINCT "Store Name")                    AS store_count
+    FROM "wholeFoods"
+    WHERE CAST("Day ID" AS DATE) >= ${MAX_DATE} - INTERVAL '${interval(days)}'
+    GROUP BY "Day ID"
+    ORDER BY "Day ID" ASC
+    LIMIT 1000
+  `);
+  return rows.map((r) => {
+    const storeCount = Number(r.store_count ?? 1);
+    return {
+      date: String(r.date),
+      unitsPerStore: storeCount > 0 ? Number(r.unit_sales ?? 0) / storeCount : 0,
+      unitsPerStoreLY: storeCount > 0 ? Number(r.unit_sales_ly ?? 0) / storeCount : 0,
+    };
+  });
 }
 
 // ─── Sales over time ──────────────────────────────────────────────────────────
