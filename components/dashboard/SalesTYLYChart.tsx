@@ -62,9 +62,20 @@ export default function SalesTYLYChart({ data, isLoading = false }: Props) {
             <XAxis dataKey="date" tick={{ fill: colors.axis, fontSize: 10 }} tickLine={false} axisLine={false} interval={Math.ceil(data.length / 6) - 1} />
             <YAxis tick={{ fill: colors.axis, fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`} width={36} />
             <Tooltip content={(props) => <CustomTooltip {...props} colors={colors} />} />
-            <Legend wrapperStyle={{ fontSize: 11, color: colors.axis, paddingTop: 8 }} formatter={(value) => value === "netSales" ? "TY" : "LY"} />
+            <Legend content={() => (
+              <div style={{ display: "flex", gap: 16, justifyContent: "center", paddingTop: 8, fontSize: 11, color: colors.axis }}>
+                <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#0090FF" strokeWidth="2" /></svg>
+                  TY
+                </span>
+                <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#0077D1" strokeWidth="1.5" strokeDasharray="4 2" /></svg>
+                  LY
+                </span>
+              </div>
+            )} />
             <Line type="monotone" dataKey="netSales" name="netSales" stroke="#0090FF" strokeWidth={2} dot={false} activeDot={{ r: 3, fill: "#0090FF" }} />
-            <Line type="monotone" dataKey="netSalesLY" name="netSalesLY" stroke="#FF3000" strokeWidth={1.5} strokeDasharray="4 2" dot={false} activeDot={{ r: 3, fill: "#FF3000" }} />
+            <Line type="monotone" dataKey="netSalesLY" name="netSalesLY" stroke="#0077D1" strokeWidth={1.5} strokeDasharray="4 2" dot={false} activeDot={{ r: 3, fill: "#0077D1" }} />
           </LineChart>
         </ResponsiveContainer>
       </div>

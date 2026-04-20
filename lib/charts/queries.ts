@@ -19,6 +19,12 @@ function interval(days: ChartDays): string {
   return days === 365 ? "1 year" : `${days} days`;
 }
 
+/** Converts a postgres DATE value (may be a JS Date object or string) to YYYY-MM-DD. */
+function toDateStr(val: unknown): string {
+  if (val instanceof Date) return val.toISOString().slice(0, 10);
+  return String(val).slice(0, 10);
+}
+
 /**
  * Postgres subquery that returns the most recent date in the table.
  * Used as the anchor for all rolling window calculations.
@@ -114,17 +120,17 @@ export interface SalesWithLYRow {
 export async function fetchSalesWithLY(days: ChartDays): Promise<SalesWithLYRow[]> {
   const rows = await runReadonlyQuery(`
     SELECT
-      "Day ID"                                    AS date,
+      CAST(DATE_TRUNC('week', CAST("Day ID" AS DATE)) AS DATE) AS date,
       SUM("Net Sales")                            AS net_sales,
       SUM(CAST("Net Sales LY" AS FLOAT))          AS net_sales_ly
     FROM "wholeFoods"
     WHERE CAST("Day ID" AS DATE) >= ${MAX_DATE} - INTERVAL '${interval(days)}'
-    GROUP BY "Day ID"
-    ORDER BY "Day ID" ASC
-    LIMIT 1000
+    GROUP BY DATE_TRUNC('week', CAST("Day ID" AS DATE))
+    ORDER BY DATE_TRUNC('week', CAST("Day ID" AS DATE)) ASC
+    LIMIT 200
   `);
   return rows.map((r) => ({
-    date: String(r.date),
+    date: toDateStr(r.date),
     netSales: Number(r.net_sales ?? 0),
     netSalesLY: Number(r.net_sales_ly ?? 0),
   }));
@@ -145,20 +151,20 @@ export interface UnitsPerStoreRow {
 export async function fetchUnitsPerStoreOverTime(days: ChartDays): Promise<UnitsPerStoreRow[]> {
   const rows = await runReadonlyQuery(`
     SELECT
-      "Day ID"                                        AS date,
+      CAST(DATE_TRUNC('week', CAST("Day ID" AS DATE)) AS DATE) AS date,
       SUM("Unit Sales")                               AS unit_sales,
       SUM(CAST("Unit Sales LY" AS INTEGER))           AS unit_sales_ly,
       COUNT(DISTINCT "Store Name")                    AS store_count
     FROM "wholeFoods"
     WHERE CAST("Day ID" AS DATE) >= ${MAX_DATE} - INTERVAL '${interval(days)}'
-    GROUP BY "Day ID"
-    ORDER BY "Day ID" ASC
-    LIMIT 1000
+    GROUP BY DATE_TRUNC('week', CAST("Day ID" AS DATE))
+    ORDER BY DATE_TRUNC('week', CAST("Day ID" AS DATE)) ASC
+    LIMIT 200
   `);
   return rows.map((r) => {
     const storeCount = Number(r.store_count ?? 1);
     return {
-      date: String(r.date),
+      date: toDateStr(r.date),
       unitsPerStore: storeCount > 0 ? Number(r.unit_sales ?? 0) / storeCount : 0,
       unitsPerStoreLY: storeCount > 0 ? Number(r.unit_sales_ly ?? 0) / storeCount : 0,
     };

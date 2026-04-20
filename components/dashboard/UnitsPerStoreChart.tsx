@@ -62,9 +62,20 @@ export default function UnitsPerStoreChart({ data, isLoading = false }: Props) {
             <XAxis dataKey="date" tick={{ fill: colors.axis, fontSize: 10 }} tickLine={false} axisLine={false} interval={Math.ceil(data.length / 6) - 1} />
             <YAxis tick={{ fill: colors.axis, fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(v: number) => v.toFixed(1)} width={36} />
             <Tooltip content={(props) => <CustomTooltip {...props} colors={colors} />} />
-            <Legend wrapperStyle={{ fontSize: 11, color: colors.axis, paddingTop: 8 }} formatter={(value) => value === "unitsPerStore" ? "TY" : "LY"} />
-            <Line type="monotone" dataKey="unitsPerStore" name="unitsPerStore" stroke="#00C6AC" strokeWidth={2} dot={false} activeDot={{ r: 3, fill: "#00C6AC" }} />
-            <Line type="monotone" dataKey="unitsPerStoreLY" name="unitsPerStoreLY" stroke="#FF3000" strokeWidth={1.5} strokeDasharray="4 2" dot={false} activeDot={{ r: 3, fill: "#FF3000" }} />
+            <Legend content={() => (
+              <div style={{ display: "flex", gap: 16, justifyContent: "center", paddingTop: 8, fontSize: 11, color: colors.axis }}>
+                <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#0090FF" strokeWidth="2" /></svg>
+                  TY
+                </span>
+                <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#0077D1" strokeWidth="1.5" strokeDasharray="4 2" /></svg>
+                  LY
+                </span>
+              </div>
+            )} />
+            <Line type="monotone" dataKey="unitsPerStore" name="unitsPerStore" stroke="#0090FF" strokeWidth={2} dot={false} activeDot={{ r: 3, fill: "#0090FF" }} />
+            <Line type="monotone" dataKey="unitsPerStoreLY" name="unitsPerStoreLY" stroke="#0077D1" strokeWidth={1.5} strokeDasharray="4 2" dot={false} activeDot={{ r: 3, fill: "#0077D1" }} />
           </LineChart>
         </ResponsiveContainer>
       </div>

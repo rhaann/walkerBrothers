@@ -18,6 +18,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "actual insight — Inventory Intelligence",
   description: "Live inventory analytics and AI assistant for beverage retail operations.",
+  icons: {
+    icon: "/logoDark.svg",
+    shortcut: "/logoDark.svg",
+  },
 };
 
 export default function RootLayout({

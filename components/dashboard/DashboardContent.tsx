@@ -99,7 +99,8 @@ function yoyTrend(
  * Formats a "Day ID" string (YYYY-MM-DD) into a short display label (e.g. "May 12").
  */
 function formatDateLabel(dateStr: string): string {
-  const date = new Date(dateStr + "T00:00:00");
+  // Postgres may return a full ISO timestamp; slice to YYYY-MM-DD before parsing
+  const date = new Date(String(dateStr).slice(0, 10) + "T00:00:00");
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
@@ -217,16 +218,8 @@ export default function DashboardContent() {
         </div>
       )}
 
-      {/* KPI strip — 2 cols narrow, 4 cols medium, 7 cols wide */}
-      <div className="grid grid-cols-2 @2xl:grid-cols-4 gap-3">
-        <KpiCard
-          label="$/Store"
-          value={data ? formatCompactCurrency(data.kpis.perStore) : "—"}
-          subLabel={periodLabel}
-          trend={data ? yoyTrend(data.kpis.perStore, data.kpis.perStoreLY)?.label : undefined}
-          trendDirection={data ? yoyTrend(data.kpis.perStore, data.kpis.perStoreLY)?.direction : undefined}
-          isLoading={isLoading}
-        />
+      {/* KPI strip — 2 cols narrow, 3 cols wide */}
+      <div className="grid grid-cols-2 @2xl:grid-cols-3 gap-3">
         <KpiCard
           label="Sales"
           value={data ? formatCompactCurrency(data.kpis.totalNetSales) : "—"}
