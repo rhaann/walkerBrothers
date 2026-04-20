@@ -14,15 +14,16 @@ interface Props {
 }
 
 function CustomTooltip({ active, payload, label, colors }: {
-  active?: boolean; payload?: readonly { value: number }[]; label?: string;
+  active?: boolean; payload?: readonly { value?: unknown }[]; label?: string | number;
   colors: ReturnType<typeof useChartColors>;
 }) {
   if (!active || !payload?.length) return null;
+  const val = Number(payload[0].value ?? 0);
   return (
     <div style={{ background: colors.tooltipBg, borderColor: colors.tooltipBorder }} className="border rounded px-3 py-2 text-sm">
       <p style={{ color: colors.tooltipMuted }} className="mb-1">{label}</p>
       <p style={{ color: colors.tooltipText }} className="font-semibold">
-        ${payload[0].value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        ${val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </p>
     </div>
   );

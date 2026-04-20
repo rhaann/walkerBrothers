@@ -15,16 +15,16 @@ interface Props {
 }
 
 function CustomTooltip({ active, payload, label, colors }: {
-  active?: boolean; payload?: readonly { value: number; name: string; color: string }[]; label?: string;
+  active?: boolean; payload?: readonly { value?: unknown; name?: string | number; color?: string }[]; label?: string | number;
   colors: ReturnType<typeof useChartColors>;
 }) {
   if (!active || !payload?.length) return null;
   return (
     <div style={{ background: colors.tooltipBg, borderColor: colors.tooltipBorder }} className="border rounded px-3 py-2 text-xs">
       <p style={{ color: colors.tooltipMuted }} className="mb-1.5">{label}</p>
-      {payload.map((p) => (
-        <p key={p.name} style={{ color: p.color }} className="font-semibold">
-          {p.name === "netSales" ? "TY" : "LY"}: ${p.value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      {payload.map((p, i) => (
+        <p key={i} style={{ color: p.color }} className="font-semibold">
+          {p.name === "netSales" ? "TY" : "LY"}: ${Number(p.value ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </p>
       ))}
     </div>
