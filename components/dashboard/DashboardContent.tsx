@@ -202,8 +202,8 @@ export default function DashboardContent() {
       {/* Header row: title + date range filter */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-white">Sales Overview</h1>
-          <p className="text-xs text-[#DCDCDC] mt-0.5">
+          <h1 className="text-lg font-semibold text-[var(--ui-text)]">Sales Overview</h1>
+          <p className="text-xs text-[var(--ui-text-muted)] mt-0.5">
             Walker Brothers · Whole Foods
           </p>
         </div>
@@ -212,7 +212,7 @@ export default function DashboardContent() {
 
       {/* Error state */}
       {error && (
-        <div className="bg-[#FF3000]/10 border border-[#FF3000]/30 rounded-lg px-4 py-3 text-sm text-[#FF3000]">
+        <div className="bg-[#FF3000]/10 border border-[#FF3000]/30 rounded-xl px-4 py-3 text-sm text-[#FF3000]">
           Failed to load data: {error}
         </div>
       )}

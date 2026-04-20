@@ -18,7 +18,7 @@ interface MessageListProps {
 function EmptyState() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 text-center">
-      <div className="w-10 h-10 rounded-full bg-[#002E47] flex items-center justify-center">
+      <div className="w-10 h-10 rounded-full bg-[var(--ui-hover)] flex items-center justify-center">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 20 20"
@@ -33,8 +33,8 @@ function EmptyState() {
         </svg>
       </div>
       <div>
-        <p className="text-sm font-medium text-white">Ask about your data</p>
-        <p className="text-xs text-[#DCDCDC] mt-1 leading-relaxed">
+        <p className="text-sm font-medium text-[var(--ui-text)]">Ask about your data</p>
+        <p className="text-xs text-[var(--ui-text-muted)] mt-1 leading-relaxed">
           Try "Which stores had the highest sales last 30 days?" or "How are unit sales trending this week?"
         </p>
       </div>

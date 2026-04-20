@@ -1,15 +1,7 @@
 "use client";
 
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { useChartColors } from "@/lib/theme";
 
 export interface UnitsPerStoreDataPoint {
   date: string;
@@ -22,22 +14,17 @@ interface Props {
   isLoading?: boolean;
 }
 
-function CustomTooltip({
-  active,
-  payload,
-  label,
-}: {
-  active?: boolean;
-  payload?: { value: number; name: string; color: string }[];
-  label?: string;
+function CustomTooltip({ active, payload, label, colors }: {
+  active?: boolean; payload?: { value: number; name: string; color: string }[]; label?: string;
+  colors: ReturnType<typeof useChartColors>;
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-[#002E47] border border-[#003A5C] rounded px-3 py-2 text-xs">
-      <p className="text-[#DCDCDC] mb-1.5">{label}</p>
+    <div style={{ background: colors.tooltipBg, borderColor: colors.tooltipBorder }} className="border rounded px-3 py-2 text-xs">
+      <p style={{ color: colors.tooltipMuted }} className="mb-1.5">{label}</p>
       {payload.map((p) => (
         <p key={p.name} style={{ color: p.color }} className="font-semibold">
-          {p.name}: {p.value.toFixed(1)}
+          {p.name === "unitsPerStore" ? "TY" : "LY"}: {p.value.toFixed(1)}
         </p>
       ))}
     </div>
@@ -45,71 +32,39 @@ function CustomTooltip({
 }
 
 export default function UnitsPerStoreChart({ data, isLoading = false }: Props) {
+  const colors = useChartColors();
+
   if (isLoading) {
     return (
-      <div className="bg-[#002236] rounded-xl p-5 flex flex-col gap-3 animate-pulse">
-        <div className="h-4 w-28 bg-[#002E47] rounded" />
-        <div className="h-48 bg-[#002E47] rounded" />
+      <div className="bg-[var(--ui-card)] rounded-xl p-5 flex flex-col gap-3 animate-pulse">
+        <div className="h-4 w-28 bg-[var(--ui-hover)] rounded" />
+        <div className="h-48 bg-[var(--ui-hover)] rounded" />
       </div>
     );
   }
 
   if (data.length === 0) {
     return (
-      <div className="bg-[#002236] rounded-xl p-5 flex flex-col gap-3">
-        <h3 className="text-xs font-semibold text-[#8A9BB0] uppercase tracking-widest">Units / Store</h3>
-        <div className="h-48 flex items-center justify-center text-sm text-[#DCDCDC]">No data</div>
+      <div className="bg-[var(--ui-card)] rounded-xl p-5 flex flex-col gap-3">
+        <h3 className="text-xs font-semibold text-[var(--ui-text-dim)] uppercase tracking-widest">Units / Store</h3>
+        <div className="h-48 flex items-center justify-center text-sm text-[var(--ui-text-muted)]">No data</div>
       </div>
     );
   }
 
-  const interval = Math.ceil(data.length / 6) - 1;
-
   return (
-    <div className="bg-[#002236] rounded-xl p-5 flex flex-col gap-3">
-      <h3 className="text-xs font-semibold text-[#8A9BB0] uppercase tracking-widest">Units / Store</h3>
+    <div className="bg-[var(--ui-card)] rounded-xl p-5 flex flex-col gap-3">
+      <h3 className="text-xs font-semibold text-[var(--ui-text-dim)] uppercase tracking-widest">Units / Store</h3>
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#002E47" vertical={false} />
-            <XAxis
-              dataKey="date"
-              tick={{ fill: "#8A9BB0", fontSize: 10 }}
-              tickLine={false}
-              axisLine={false}
-              interval={interval}
-            />
-            <YAxis
-              tick={{ fill: "#8A9BB0", fontSize: 10 }}
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(v: number) => v.toFixed(1)}
-              width={36}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend
-              wrapperStyle={{ fontSize: 11, color: "#8A9BB0", paddingTop: 8 }}
-              formatter={(value) => value === "unitsPerStore" ? "TY" : "LY"}
-            />
-            <Line
-              type="monotone"
-              dataKey="unitsPerStore"
-              name="unitsPerStore"
-              stroke="#00C6AC"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 3, fill: "#00C6AC" }}
-            />
-            <Line
-              type="monotone"
-              dataKey="unitsPerStoreLY"
-              name="unitsPerStoreLY"
-              stroke="#FF3000"
-              strokeWidth={1.5}
-              strokeDasharray="4 2"
-              dot={false}
-              activeDot={{ r: 3, fill: "#FF3000" }}
-            />
+            <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} vertical={false} />
+            <XAxis dataKey="date" tick={{ fill: colors.axis, fontSize: 10 }} tickLine={false} axisLine={false} interval={Math.ceil(data.length / 6) - 1} />
+            <YAxis tick={{ fill: colors.axis, fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(v: number) => v.toFixed(1)} width={36} />
+            <Tooltip content={(props) => <CustomTooltip {...props} colors={colors} />} />
+            <Legend wrapperStyle={{ fontSize: 11, color: colors.axis, paddingTop: 8 }} formatter={(value) => value === "unitsPerStore" ? "TY" : "LY"} />
+            <Line type="monotone" dataKey="unitsPerStore" name="unitsPerStore" stroke="#00C6AC" strokeWidth={2} dot={false} activeDot={{ r: 3, fill: "#00C6AC" }} />
+            <Line type="monotone" dataKey="unitsPerStoreLY" name="unitsPerStoreLY" stroke="#FF3000" strokeWidth={1.5} strokeDasharray="4 2" dot={false} activeDot={{ r: 3, fill: "#FF3000" }} />
           </LineChart>
         </ResponsiveContainer>
       </div>

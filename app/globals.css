@@ -19,24 +19,48 @@
   --color-neutral-grey: #DCDCDC;
   --color-neutral-grey-light: #EFEFEF;
 
-  /* Semantic surface tokens — used throughout components */
-  --color-surface-base: #001A29;
-  --color-surface-raised: #002236;
-  --color-surface-overlay: #002E47;
-
   /* Typography */
   --font-sans: var(--font-inter);
 }
 
-/* Dark-first base — Navy Black is the canonical background */
+/* ── Theme CSS variables ───────────────────────────────────────────────────── */
+/* Dark theme (default) */
 :root {
-  background-color: #001A29;
-  color: #FFFFFF;
+  --ui-bg:             #001A29;
+  --ui-card:           #002236;
+  --ui-hover:          #002E47;
+  --ui-border:         #002E47;
+  --ui-border-strong:  #003A5C;
+  --ui-text:           #FFFFFF;
+  --ui-text-muted:     #DCDCDC;
+  --ui-text-dim:       #8A9BB0;
+  --ui-chart-grid:     #002E47;
+  --ui-chart-cursor:   #002E47;
+}
+
+/* Light theme */
+html[data-theme="light"] {
+  --ui-bg:             #F5F7FA;
+  --ui-card:           #FFFFFF;
+  --ui-hover:          #EEF2F7;
+  --ui-border:         #E2E8F0;
+  --ui-border-strong:  #CBD5E1;
+  --ui-text:           #0F172A;
+  --ui-text-muted:     #475569;
+  --ui-text-dim:       #94A3B8;
+  --ui-chart-grid:     #E2E8F0;
+  --ui-chart-cursor:   #EEF2F7;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+:root {
+  background-color: var(--ui-bg);
+  color: var(--ui-text);
 }
 
 body {
-  background-color: #001A29;
-  color: #FFFFFF;
+  background-color: var(--ui-bg);
+  color: var(--ui-text);
   font-family: var(--font-inter), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

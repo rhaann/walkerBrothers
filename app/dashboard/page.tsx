@@ -23,7 +23,7 @@ export default async function DashboardPage() {
     user?.email;
 
   return (
-    <div className="h-screen flex flex-col bg-[#001A29] overflow-hidden">
+    <div className="h-screen flex flex-col bg-[var(--ui-bg)] overflow-hidden">
       <Navbar userEmail={user?.email} displayName={displayName} />
       <ResizablePanels
         left={<DashboardContent />}

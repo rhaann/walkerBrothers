@@ -78,7 +78,7 @@ export default function ResizablePanels({
       {/* Draggable divider */}
       <div
         onMouseDown={handleMouseDown}
-        className="w-1 shrink-0 bg-[#002E47] hover:bg-[#0077D1] active:bg-[#0077D1] cursor-col-resize transition-colors duration-150 group"
+        className="w-1 shrink-0 bg-[var(--ui-border)] hover:bg-[#0077D1] active:bg-[#0077D1] cursor-col-resize transition-colors duration-150 group"
         role="separator"
         aria-orientation="vertical"
         aria-label="Resize panels"
