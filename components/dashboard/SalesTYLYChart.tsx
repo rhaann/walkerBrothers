@@ -69,13 +69,13 @@ export default function SalesTYLYChart({ data, isLoading = false }: Props) {
                   TY
                 </span>
                 <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                  <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#0077D1" strokeWidth="1.5" strokeDasharray="4 2" /></svg>
+                  <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#FF3000" strokeWidth="1.5" strokeDasharray="4 2" /></svg>
                   LY
                 </span>
               </div>
             )} />
             <Line type="monotone" dataKey="netSales" name="netSales" stroke="#0090FF" strokeWidth={2} dot={false} activeDot={{ r: 3, fill: "#0090FF" }} />
-            <Line type="monotone" dataKey="netSalesLY" name="netSalesLY" stroke="#0077D1" strokeWidth={1.5} strokeDasharray="4 2" dot={false} activeDot={{ r: 3, fill: "#0077D1" }} />
+            <Line type="monotone" dataKey="netSalesLY" name="netSalesLY" stroke="#FF3000" strokeWidth={1.5} strokeDasharray="4 2" dot={false} activeDot={{ r: 3, fill: "#FF3000" }} />
           </LineChart>
         </ResponsiveContainer>
       </div>
