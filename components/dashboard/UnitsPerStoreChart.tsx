@@ -15,7 +15,7 @@ interface Props {
 }
 
 function CustomTooltip({ active, payload, label, colors }: {
-  active?: boolean; payload?: { value: number; name: string; color: string }[]; label?: string;
+  active?: boolean; payload?: readonly { value: number; name: string; color: string }[]; label?: string;
   colors: ReturnType<typeof useChartColors>;
 }) {
   if (!active || !payload?.length) return null;
