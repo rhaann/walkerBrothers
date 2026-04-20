@@ -7,6 +7,8 @@ interface KpiCardProps {
   trend?: string;
   trendDirection?: TrendDirection;
   isLoading?: boolean;
+  /** Reduces value font size for long text like product names. */
+  compact?: boolean;
 }
 
 function trendColor(direction: TrendDirection): string {
@@ -34,6 +36,7 @@ export default function KpiCard({
   trend,
   trendDirection = "neutral",
   isLoading = false,
+  compact = false,
 }: KpiCardProps) {
   if (isLoading) {
     return (
@@ -51,7 +54,7 @@ export default function KpiCard({
         {label}
       </span>
       <span
-        className="text-xl font-bold text-[var(--ui-text)] leading-tight overflow-hidden"
+        className={`${compact ? "text-sm" : "text-xl"} font-bold text-[var(--ui-text)] leading-tight overflow-hidden`}
         style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
         title={value}
       >

@@ -270,6 +270,7 @@ export default function DashboardContent() {
           value={data?.kpis.topProduct ?? "—"}
           subLabel="by net sales"
           isLoading={isLoading}
+          compact
         />
       </div>
 
